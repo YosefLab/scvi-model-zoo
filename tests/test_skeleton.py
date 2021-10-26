@@ -1,5 +1,3 @@
-import pyro
-
 from mypackage import MyModel
 
 

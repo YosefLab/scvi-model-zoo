@@ -2,7 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class MyModule():
+
+class MyModule:
     """
     TBD
     """
@@ -11,5 +12,3 @@ class MyModule():
         self,
     ):
         logger.info("There is nothing here for now...")
-
-

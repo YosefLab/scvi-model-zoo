@@ -2,7 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class MyModel():
+
+class MyModel:
     """
     TBD
     """
