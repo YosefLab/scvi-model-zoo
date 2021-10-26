@@ -3,9 +3,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap');
 
 :root {
-    --sidebarcolor: #003262;
+    --sidebarcolor: #346200;
     --sidebarfontcolor: #ffffff;
-	--sidebarhover: #295e97;
+	--sidebarhover: #5b9729;
 
     --bodyfontcolor: #333;
 	--webfont: 'Roboto';
