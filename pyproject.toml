@@ -54,6 +54,7 @@ scvi-tools = ">=0.14.3,<0.15.0" # upper-bound for now to avoid upcoming breaking
 sphinx = {version = "^3.0", optional = true}
 sphinx-autodoc-typehints = {version = "*", optional = true}
 sphinx-rtd-theme = {version = "*", optional = true}
+karma_sphinx_theme = {version = "*", optional = true}
 typing_extensions = {version = "*", python = "<3.8"}
 
 [tool.poetry.extras]
@@ -68,6 +69,7 @@ docs = [
   "typing_extensions",
   "sphinx-autodoc-typehints",
   "sphinx-rtd-theme",
+  "karma_sphinx_theme"
 ]
 
 [tool.poetry.dev-dependencies]
