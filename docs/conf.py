@@ -86,7 +86,7 @@ intersphinx_mapping = dict(
 # General information about the project.
 project = u"mypackage"
 copyright = u"2021, Yosef Lab, UC Berkeley"
-author = u"Adam Gayoso"
+author = u"Valeh Valiollah Pour Amiri"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout
@@ -120,6 +120,7 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
+# html_theme = "karma-sphinx-theme"
 html_theme = "sphinx_rtd_theme"
 
 html_show_sourcelink = False
