@@ -854,14 +854,6 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
-name = "karma-sphinx-theme"
-version = "0.0.8"
-description = "A sphinx theme built with KarmaCSS"
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "kiwisolver"
 version = "1.3.2"
 description = "A fast implementation of the Cassowary constraint solver"
@@ -2453,7 +2445,7 @@ docs = ["sphinx", "scanpydoc", "nbsphinx", "nbsphinx-link", "ipython", "pydata-s
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.2,<4.0"
-content-hash = "cdecac2d164ecc5b718192702f210b4ed71212597a5aca948315118cbec16db7"
+content-hash = "9f066e40975df667eee61054e38a814c463a23cda7a3af19eff7fee5807a3858"
 
 [metadata.files]
 absl-py = [
@@ -2915,9 +2907,6 @@ jupyterlab-pygments = [
 jupyterlab-widgets = [
     {file = "jupyterlab_widgets-1.0.2-py3-none-any.whl", hash = "sha256:f5d9efface8ec62941173ba1cffb2edd0ecddc801c11ae2931e30b50492eb8f7"},
     {file = "jupyterlab_widgets-1.0.2.tar.gz", hash = "sha256:7885092b2b96bf189c3a705cc3c412a4472ec5e8382d0b47219a66cccae73cfa"},
-]
-karma-sphinx-theme = [
-    {file = "karma_sphinx_theme-0.0.8.tar.gz", hash = "sha256:5a95f91818b458bd5bdf62690828361a369a222f0721cd0e1eb2ea29056e8c27"},
 ]
 kiwisolver = [
     {file = "kiwisolver-1.3.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:1d819553730d3c2724582124aee8a03c846ec4362ded1034c16fb3ef309264e6"},
