@@ -2,7 +2,7 @@
 scvi-model-zoo documentation
 ============================
 
-Welcome! This is the corresponding documentation website for the `scvi-model-zoo<https://github.com/YosefLab/scvi-model-zoo>`_.
+Welcome! This is the corresponding documentation website for the `scvi-model-zoo <https://github.com/YosefLab/scvi-model-zoo>`_.
 
 
 .. toctree::
