@@ -2,7 +2,7 @@
 include_trailing_comma = true
 multi_line_output = 3
 profile = "black"
-skip_glob = ["docs/*", "mypackage/__init__.py"]
+skip_glob = ["docs/*", "scvimadz/__init__.py"]
 
 [tool.poetry]
 authors = ["Valeh Valiollah Pour Amiri <valehvpa@berkeley.edu>"]
@@ -23,7 +23,7 @@ homepage = "https://github.com/YosefLab/scvi-model-zoo"
 license = "BSD-3-Clause"
 name = "scvi-model-zoo"
 packages = [
-  {include = "mypackage"},
+  {include = "scvimadz"},
 ]
 readme = "README.md"
 version = "0.1.0"
@@ -67,7 +67,7 @@ docs = [
   "pydata-sphinx-theme",
   "typing_extensions",
   "sphinx-autodoc-typehints",
-  "sphinx-rtd-theme"
+  "sphinx-rtd-theme",
 ]
 
 [tool.poetry.dev-dependencies]

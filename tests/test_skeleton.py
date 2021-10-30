@@ -1,4 +1,4 @@
-from mypackage import MyModel
+from scvimadz import MyModel
 
 
 def test_mymodel():
