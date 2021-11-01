@@ -7,10 +7,24 @@ from storage import ZenodoStorage
 
 
 class TabulaSapiensReference(BaseReference):
-    def __init__(self, store: ZenodoStorage):
-        self._store = store
-        self._models = self._list_models()
-        self._datasets = self._list_datasets()
+    def __init__(self):
+        self._store = ZenodoStorage("test")
+        self._init_models()
+        self._init_datasets()
+
+    def _init_models(self) -> None:
+        # TODO update `if` condition depdending on how we will store the data on Zenodo
+        self._model_keys = [
+            key
+            for key in self._store.list_model_keys()
+            if key.contains("tabula_sapiens")
+        ]
+        for model_key in self._model_keys:
+            self.load_model(model_key)
+            # TODO add model to the dataframe with some of its properties
+
+    def _init_datasets(self) -> None:
+        raise NotImplementedError
 
     def list_models(self) -> pd.DataFrame:
         """ Lists all available models associated with this reference """
@@ -19,22 +33,6 @@ class TabulaSapiensReference(BaseReference):
     def list_datasets(self) -> pd.DataFrame:
         """ Lists all available datasets associated with this reference """
         return self._datasets
-
-    def _list_models(self) -> pd.DataFrame:
-        """ Internal implementation of :meth:`~list_models` """
-        # TODO update `if` condition depdending on how we will store the data on Zenodo
-        model_keys = [
-            key
-            for key in self._store.list_model_keys()
-            if key.contains("tabula_sapiens")
-        ]
-        for model_key in model_keys:
-            self._store.load_model(model_key)
-            # TODO add model to the dataframe
-
-    def _list_datasets(self) -> pd.DataFrame:
-        """ Internal implementation of :meth:`~list_datasets` """
-        raise NotImplementedError
 
     def load_model(
         self, model_id: str, load_anndata: bool = False

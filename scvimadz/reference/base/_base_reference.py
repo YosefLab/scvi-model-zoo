@@ -3,13 +3,9 @@ from typing import Type
 
 import pandas as pd
 from scvi.model.base import BaseModelClass
-from storage.base import BaseStorage
 
 
 class BaseReference(ABC):
-    def __init__(self, store: BaseStorage):
-        self.store = store
-
     @abstractmethod
     def list_models(self) -> pd.DataFrame:
         """ Lists all available models associated with this reference """
