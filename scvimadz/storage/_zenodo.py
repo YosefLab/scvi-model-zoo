@@ -9,15 +9,11 @@ class ZenodoStorage(BaseStorage):
 
     def list_model_keys(self) -> List[str]:
         """ Returns the id's of all models stored """
-        pass
+        raise NotImplementedError
 
     def list_dataset_keys(self) -> List[str]:
         """ Returns the id's of all datasets stored """
-        pass
-
-    def list_all_keys(self) -> List[str]:
-        """ Returns the id's of all models and datasets stored """
-        return self.list_model_keys() + self.list_dataset_keys()
+        raise NotImplementedError
 
     def load_model(self, key: str) -> str:
         """

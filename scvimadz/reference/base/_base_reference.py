@@ -17,9 +17,7 @@ class BaseReference(ABC):
         pass
 
     @abstractmethod
-    def load_model(
-        self, model_id: str, load_anndata: bool = False
-    ) -> Type[BaseModelClass]:
+    def load_model(self, model_id: str) -> Type[BaseModelClass]:
         """
         Loads the model with the given id if it exists, else raises an error.
 
@@ -27,8 +25,6 @@ class BaseReference(ABC):
         ----------
         model_id
             id of the model to load
-        load_anndata
-            Whether or not to load the dataset the model was trained on
 
         Returns
         -------

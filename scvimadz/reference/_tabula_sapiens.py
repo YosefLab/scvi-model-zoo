@@ -8,7 +8,9 @@ from storage import ZenodoStorage
 
 class TabulaSapiensReference(BaseReference):
     def __init__(self):
-        self._store = ZenodoStorage("test")
+        self._store = ZenodoStorage("test_url")
+        self._models = {}  # id to model instance
+        self._datasets = {}  # id to dataset
         self._init_models()
         self._init_datasets()
 
@@ -21,7 +23,7 @@ class TabulaSapiensReference(BaseReference):
         ]
         for model_key in self._model_keys:
             self.load_model(model_key)
-            # TODO add model to the dataframe with some of its properties
+            # TODO add model to the dataframe with some of its properties then add df to self._models
 
     def _init_datasets(self) -> None:
         raise NotImplementedError
@@ -34,9 +36,7 @@ class TabulaSapiensReference(BaseReference):
         """ Lists all available datasets associated with this reference """
         return self._datasets
 
-    def load_model(
-        self, model_id: str, load_anndata: bool = False
-    ) -> Type[BaseModelClass]:
+    def load_model(self, model_id: str) -> Type[BaseModelClass]:
         """
         Loads the model with the given id if it exists, else raises an error.
 
@@ -44,11 +44,12 @@ class TabulaSapiensReference(BaseReference):
         ----------
         model_id
             id of the model to load
-        load_anndata
-            Whether or not to load the anndata dataset the model was trained on
 
         Returns
         -------
         An instance of :class:`~scvi.model.base.BaseModelClass` associated with the given model id.
         """
-        raise NotImplementedError
+        if model_id in self._model_keys:
+            return self._models[model_id]
+        else:
+            raise KeyError(f"No model found with id {model_id}")

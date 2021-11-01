@@ -18,7 +18,7 @@ class BaseStorage(ABC):
         return self.list_model_keys() + self.list_dataset_keys()
 
     @abstractmethod
-    def load_model(self, key: str) -> str:
+    def load_model(self, key: str) -> str:  # return type TBD
         """
         Loads the model with the given id if it exists, else raises an error.
 
