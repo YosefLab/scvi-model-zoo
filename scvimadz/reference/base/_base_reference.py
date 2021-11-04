@@ -5,6 +5,7 @@ import pandas as pd
 from scvi.model.base import BaseModelClass
 
 
+# TODO update methods to match TSReference
 class BaseReference(ABC):
     @abstractmethod
     def list_models(self) -> pd.DataFrame:
@@ -14,6 +15,11 @@ class BaseReference(ABC):
     @abstractmethod
     def list_datasets(self) -> pd.DataFrame:
         """ Lists all available datasets associated with this reference """
+        pass
+
+    @abstractmethod
+    def print_models(self) -> None:
+        """ Calls :meth:`~scvimadz.reference.base.BaseReference.list_models` and prints out the results """
         pass
 
     @abstractmethod
