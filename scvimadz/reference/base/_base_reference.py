@@ -13,6 +13,7 @@ class BaseReference:
         model_store: Type[BaseStorage],
         dataset_store: Type[BaseStorage],
     ):
+        # TODO make these abstract props instead and create a GenericReference class
         self._reference_prefix = reference_name + "_"  # e.g. tabula_sapiens_
         self._model_store = model_store
         self._dataset_store = dataset_store
@@ -21,14 +22,14 @@ class BaseReference:
         assert obj_type in ["model", "dataset"]
         store = self._model_store if obj_type == "model" else self._dataset_store
         keys = [
-            key for key in store.list_keys() if key.contains(self._reference_prefix)
+            key for key in store.list_keys() if key.startswith(self._reference_prefix)
         ]
         return keys
 
     def list_models(self) -> pd.DataFrame:
         """ Lists all available models associated with this reference """
         model_keys = self._get_object_keys("model")
-        metadata_file = self._model_store.load_file("models_metadata")
+        metadata_file = self._model_store.download_file("models_metadata")
         return pd.read_csv(metadata_file, index_col="key").loc[model_keys]
 
     def list_datasets(self) -> pd.DataFrame:
@@ -73,7 +74,7 @@ class BaseReference:
         """
         model_keys = self._get_object_keys("model")
         if model_id in model_keys:
-            # model_file = self._model_store.load_file(model_id)
+            # model_text = self._model_store.load_file(model_id)
             models = self.list_models()
             # get the cell that contains the cls_name for this model, it will be like: scvi.model.TOTALVI
             # model_cls_name = models.loc[model_id, "cls_name"]
@@ -83,9 +84,8 @@ class BaseReference:
             if adata is None:
                 model_adata = models.loc[model_id, "train_dataset"]
                 adata = self.load_dataset(model_adata)
-            # model_cls.load(model_file, adata=adata, use_gpu=use_gpu) <- this doesn't work yet. We need to write a ``load``
-            # method in scvi-tools that takes a str object. PyTorch supports it already. Also pin the corresponding scvi-tools
-            # version once that's done. TODO
+            # model_cls.load(model_text, adata=adata, use_gpu=use_gpu) <- this doesn't work yet. We need to write a ``load``
+            # method in scvi-tools that takes a str object. PyTorch supports it already.
         else:
             raise KeyError(f"No model found with id {model_id}")
 
@@ -106,6 +106,6 @@ class BaseReference:
         if dataset_id in dataset_keys:
             # data_file = self._dataset_store.load_file(dataset_id)
             # TODO how to load anndata from stream?
-            pass
+            raise NotImplementedError
         else:
             raise KeyError(f"No dataset found with id {dataset_id}")
