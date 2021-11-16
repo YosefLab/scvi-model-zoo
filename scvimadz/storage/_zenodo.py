@@ -2,7 +2,8 @@ import os
 from typing import List
 
 import requests
-from base import BaseStorage
+
+from .base import BaseStorage
 
 _ZENODO_API_BASE_URL = "https://zenodo.org/api/"
 _ZENODO_API_RECORDS_URL = _ZENODO_API_BASE_URL + "records/"
@@ -13,6 +14,8 @@ class ZenodoStorage(BaseStorage):
     def __init__(self, record_id: str, data_dir: str):
         self._record_id = record_id
         self._data_dir = data_dir
+        if not os.path.isdir(data_dir):
+            raise ValueError(f"Error: {data_dir} is not a valid directory")
 
     def list_keys(self) -> List[str]:
         """ Returns all keys in this storage """
@@ -26,8 +29,8 @@ class ZenodoStorage(BaseStorage):
 
     def download_file(self, key: str) -> str:
         """
-        Downloads the file with the given id if it exists to a temp location, else raises an error.
-        Returns the contents of the downloaded file as text.
+        Downloads the file with the given id to the path rooted at the user-provided `data_dir`,
+        else raises an error. Returns the full path to the downloaded file.
 
         Parameters
         ----------
@@ -37,11 +40,10 @@ class ZenodoStorage(BaseStorage):
         if key not in self.list_keys():
             raise ValueError(f"Key {key} not found.")
         file_url = _ZENODO_RECORD_URL.format(self._record_id, key)
-        response = requests.head(file_url)
-        response.raise_for_status()
-        # if "Content-Length" not in response.headers or int(response.headers["Content-Length"]) > 500 * 10**9:
-        #     raise NotImplementedError
         response = requests.get(file_url)
-        with open(os.path.join(self._data_dir, key), "wb") as f:
-            f.write(response)
-        return response.text
+        response.raise_for_status()
+        # save response to file and return its full path
+        file_path = os.path.join(self._data_dir, key)
+        with open(file_path, "wb") as f:
+            f.write(response.content)
+        return file_path

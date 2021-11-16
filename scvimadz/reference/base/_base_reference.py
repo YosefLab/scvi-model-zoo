@@ -1,26 +1,39 @@
+from abc import ABC, abstractmethod
 from typing import List, Optional, Type, Union
 
 import pandas as pd
+import rich_dataframe
 from anndata import AnnData
 from scvi.model.base import BaseModelClass
 from storage.base import BaseStorage
 
 
-class BaseReference:
-    def __init__(
-        self,
-        reference_name: str,
-        model_store: Type[BaseStorage],
-        dataset_store: Type[BaseStorage],
-    ):
-        # TODO make these abstract props instead and create a GenericReference class
-        self._reference_prefix = reference_name + "_"  # e.g. tabula_sapiens_
-        self._model_store = model_store
-        self._dataset_store = dataset_store
+class BaseReference(ABC):
+    def __init__(self) -> None:
+        super().__init__()
+        self._reference_prefix = self.reference_name + "_"  # e.g. tabula_sapiens_
+
+    @property
+    @abstractmethod
+    def reference_name(self) -> str:
+        """ The name of this reference """
+        pass
+
+    @property
+    @abstractmethod
+    def model_store(self) -> Type[BaseStorage]:
+        """ The backend store for models """
+        pass
+
+    @property
+    @abstractmethod
+    def data_store(self) -> Type[BaseStorage]:
+        """ The backend store for datasets """
+        pass
 
     def _get_object_keys(self, obj_type: str = "model") -> List[str]:
         assert obj_type in ["model", "dataset"]
-        store = self._model_store if obj_type == "model" else self._dataset_store
+        store = self.model_store if obj_type == "model" else self.data_store
         keys = [
             key for key in store.list_keys() if key.startswith(self._reference_prefix)
         ]
@@ -29,7 +42,7 @@ class BaseReference:
     def list_models(self) -> pd.DataFrame:
         """ Lists all available models associated with this reference """
         model_keys = self._get_object_keys("model")
-        metadata_file = self._model_store.download_file("models_metadata")
+        metadata_file = self.model_store.download_file("models_metadata")
         return pd.read_csv(metadata_file, index_col="key").loc[model_keys]
 
     def list_datasets(self) -> pd.DataFrame:
@@ -38,14 +51,14 @@ class BaseReference:
 
     def print_models(self) -> None:
         """ Calls :meth:`~scvimadz.reference.base.BaseReference.list_models` and pretty-prints the results """
-        # df = self.list_models()
+        df = self.list_models()
         # TODO add rich_dataframe to toml
-        # rich_dataframe.prettify(
-        #     df,
-        #     row_limit=len(df),
-        #     col_limit=len(df.columns),
-        #     clear_console=False,
-        # )
+        rich_dataframe.prettify(
+            df,
+            row_limit=len(df),
+            col_limit=len(df.columns),
+            clear_console=False,
+        )
         pass
 
     def load_model(
@@ -74,7 +87,7 @@ class BaseReference:
         """
         model_keys = self._get_object_keys("model")
         if model_id in model_keys:
-            # model_text = self._model_store.load_file(model_id)
+            # model_text = self.model_store.load_file(model_id)
             models = self.list_models()
             # get the cell that contains the cls_name for this model, it will be like: scvi.model.TOTALVI
             # model_cls_name = models.loc[model_id, "cls_name"]
@@ -104,7 +117,7 @@ class BaseReference:
         """
         dataset_keys = self._get_object_keys("dataset")
         if dataset_id in dataset_keys:
-            # data_file = self._dataset_store.load_file(dataset_id)
+            # data_file = self.data_store.load_file(dataset_id)
             # TODO how to load anndata from stream?
             raise NotImplementedError
         else:

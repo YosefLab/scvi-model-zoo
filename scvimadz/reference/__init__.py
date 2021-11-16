@@ -1,3 +1,3 @@
-from ._tabula_sapiens import TabulaSapiens
+from ._tabula_sapiens import TabulaSapiensReference
 
-__all__ = ["TabulaSapiens"]
+__all__ = ["TabulaSapiensReference"]
