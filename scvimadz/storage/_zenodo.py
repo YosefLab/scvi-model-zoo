@@ -5,21 +5,24 @@ import requests
 
 from .base import BaseStorage
 
-_ZENODO_API_BASE_URL = "https://zenodo.org/api/"
-_ZENODO_API_RECORDS_URL = _ZENODO_API_BASE_URL + "records/"
-_ZENODO_RECORD_URL = "https://zenodo.org/record/{}/files/{}"
-
 
 class ZenodoStorage(BaseStorage):
-    def __init__(self, record_id: str, data_dir: str):
+    def __init__(self, record_id: str, data_dir: str, sandbox: bool = False):
         self._record_id = record_id
         self._data_dir = data_dir
         if not os.path.isdir(data_dir):
             raise ValueError(f"Error: {data_dir} is not a valid directory")
+        # zenodo urls
+        self._zenodo_base_url = (
+            "https://zenodo.org/" if not sandbox else "https://sandbox.zenodo.org/"
+        )
+        self._zenodo_record_url = self._zenodo_base_url + "record/{}/files/{}"
+        self._zenodo_api_base_url = self._zenodo_base_url + "api/"
+        self._zenodo_api_records_url = self._zenodo_api_base_url + "records/"
 
     def list_keys(self) -> List[str]:
         """ Returns all keys in this storage """
-        response = requests.get(_ZENODO_API_RECORDS_URL + self._record_id)
+        response = requests.get(self._zenodo_api_records_url + self._record_id)
         # for the status codes Zenodo uses, see https://developers.zenodo.org/#responses
         response.raise_for_status()
         # if the call above didn't throw the response was "ok" (code < 400)
@@ -39,7 +42,7 @@ class ZenodoStorage(BaseStorage):
         """
         if key not in self.list_keys():
             raise ValueError(f"Key {key} not found.")
-        file_url = _ZENODO_RECORD_URL.format(self._record_id, key)
+        file_url = self._zenodo_record_url.format(self._record_id, key)
         response = requests.get(file_url)
         response.raise_for_status()
         # save response to file and return its full path

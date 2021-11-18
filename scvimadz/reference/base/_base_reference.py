@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional, Type, Union
 
+import anndata
 import pandas as pd
 import rich_dataframe
 from anndata import AnnData
@@ -31,7 +32,7 @@ class BaseReference(ABC):
         """ The backend store for datasets """
         pass
 
-    def _get_object_keys(self, obj_type: str = "model") -> List[str]:
+    def _get_object_keys(self, obj_type: str) -> List[str]:
         assert obj_type in ["model", "dataset"]
         store = self.model_store if obj_type == "model" else self.data_store
         keys = [
@@ -39,27 +40,28 @@ class BaseReference(ABC):
         ]
         return keys
 
-    def list_models(self) -> pd.DataFrame:
+    def _list_objects(
+        self, obj_type: str, metadata_fn: str, pretty_print: bool = False
+    ) -> pd.DataFrame:
+        keys = self._get_object_keys(obj_type)
+        metadata_file = self.model_store.download_file(metadata_fn)
+        df = pd.read_csv(metadata_file, index_col="key").loc[keys]
+        if pretty_print:
+            rich_dataframe.prettify(
+                df,
+                row_limit=len(df),
+                col_limit=len(df.columns),
+                clear_console=False,
+            )
+        return df
+
+    def list_models(self, pretty_print: bool = False) -> pd.DataFrame:
         """ Lists all available models associated with this reference """
-        model_keys = self._get_object_keys("model")
-        metadata_file = self.model_store.download_file("models_metadata")
-        return pd.read_csv(metadata_file, index_col="key").loc[model_keys]
+        return self._list_objects("model", "models_metadata.csv", pretty_print)
 
-    def list_datasets(self) -> pd.DataFrame:
+    def list_datasets(self, pretty_print: bool = False) -> pd.DataFrame:
         """ Lists all available datasets associated with this reference """
-        raise NotImplementedError
-
-    def print_models(self) -> None:
-        """ Calls :meth:`~scvimadz.reference.base.BaseReference.list_models` and pretty-prints the results """
-        df = self.list_models()
-        # TODO add rich_dataframe to toml
-        rich_dataframe.prettify(
-            df,
-            row_limit=len(df),
-            col_limit=len(df.columns),
-            clear_console=False,
-        )
-        pass
+        return self._list_objects("dataset", "datasets_metadata.csv", pretty_print)
 
     def load_model(
         self,
@@ -102,9 +104,9 @@ class BaseReference(ABC):
         else:
             raise KeyError(f"No model found with id {model_id}")
 
-    def load_dataset(self, dataset_id: str) -> Type[AnnData]:
+    def load_dataset(self, dataset_id: str) -> AnnData:
         """
-        Loads the dataset with the given id if it exists, else raises an error.
+        Loads the dataset with the given id if it exists.
 
         Parameters
         ----------
@@ -115,10 +117,5 @@ class BaseReference(ABC):
         -------
         An instance of :class:`~anndata.AnnData` associated with the given dataset id.
         """
-        dataset_keys = self._get_object_keys("dataset")
-        if dataset_id in dataset_keys:
-            # data_file = self.data_store.load_file(dataset_id)
-            # TODO how to load anndata from stream?
-            raise NotImplementedError
-        else:
-            raise KeyError(f"No dataset found with id {dataset_id}")
+        data_file = self.data_store.download_file(dataset_id)
+        return anndata.read_h5ad(data_file)

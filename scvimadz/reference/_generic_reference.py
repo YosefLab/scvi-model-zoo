@@ -1,21 +1,25 @@
 from typing import Type
 
-from storage import ZenodoStorage
 from storage.base import BaseStorage
 
 from .base import BaseReference
 
 
-class TabulaSapiensReference(BaseReference):
-    def __init__(self, data_dir: str):
-        # TODO replace 961966 (our sandbox record id) with our real repo id's
-        self._model_store = ZenodoStorage("962638", data_dir)
-        self._data_store = ZenodoStorage("962630", data_dir)
+class GenericReference(BaseReference):
+    def __init__(
+        self,
+        reference_name: str,
+        model_store: Type[BaseStorage],
+        data_store: Type[BaseStorage],
+    ):
+        self._reference_name = reference_name
+        self._model_store = model_store
+        self._data_store = data_store
         super().__init__()
 
     @property
     def reference_name(self) -> str:
-        return "tabula_sapiens"
+        return self._reference_name
 
     @property
     def model_store(self) -> Type[BaseStorage]:
