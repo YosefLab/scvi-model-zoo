@@ -1,3 +1,5 @@
+import importlib
+import os
 from abc import ABC, abstractmethod
 from typing import List, Optional, Type, Union
 
@@ -53,7 +55,8 @@ class BaseReference(ABC):
                 col_limit=len(df.columns),
                 clear_console=False,
             )
-        return df
+        else:
+            return df
 
     def list_models(self, pretty_print: bool = False) -> pd.DataFrame:
         """ Lists all available models associated with this reference """
@@ -87,22 +90,17 @@ class BaseReference(ABC):
         -------
         An instance of :class:`~scvi.model.base.BaseModelClass` associated with the given model id.
         """
-        model_keys = self._get_object_keys("model")
-        if model_id in model_keys:
-            # model_text = self.model_store.load_file(model_id)
-            models = self.list_models()
-            # get the cell that contains the cls_name for this model, it will be like: scvi.model.TOTALVI
-            # model_cls_name = models.loc[model_id, "cls_name"]
-            # cls = model_cls_name.split(".")[-1]
-            # module = model_cls_name.split(".")[:-1].join(".")
-            # model_cls = getattr(importlib.import_module(module), cls)
-            if adata is None:
-                model_adata = models.loc[model_id, "train_dataset"]
-                adata = self.load_dataset(model_adata)
-            # model_cls.load(model_text, adata=adata, use_gpu=use_gpu) <- this doesn't work yet. We need to write a ``load``
-            # method in scvi-tools that takes a str object. PyTorch supports it already.
-        else:
-            raise KeyError(f"No model found with id {model_id}")
+        models = self.list_models()
+        # get the cell that contains the cls_name for this model, it will be like: scvi.model.TOTALVI
+        model_cls_name = models.loc[model_id, "cls_name"]
+        cls = model_cls_name.split(".")[-1]
+        module = ".".join(model_cls_name.split(".")[:-1])
+        if adata is None:
+            model_adata = models.loc[model_id, "train_dataset"]
+            adata = self.load_dataset(model_adata)
+        model_cls = getattr(importlib.import_module(module), cls)
+        model_file = self.model_store.download_file(model_id)
+        model_cls.load(os.path.dir_name(model_file), adata=adata, use_gpu=use_gpu)
 
     def load_dataset(self, dataset_id: str) -> AnnData:
         """
