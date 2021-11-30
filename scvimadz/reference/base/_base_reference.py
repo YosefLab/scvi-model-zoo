@@ -1,20 +1,26 @@
 import importlib
-import os
+import shutil
 from abc import ABC, abstractmethod
 from typing import List, Optional, Type, Union
 
 import anndata
 import pandas as pd
 import rich_dataframe
+from _utils import dirname
 from anndata import AnnData
 from scvi.model.base import BaseModelClass
 from storage.base import BaseStorage
+
+_OBJ_TYPE_MODEL = "model"
+_OBJ_TYPE_DATASET = "dataset"
+_MODELS_METADATA_FILE = "models_metadata.csv"
+_DATASETS_METADATA_FILE = "datasets_metadata.csv"
 
 
 class BaseReference(ABC):
     def __init__(self) -> None:
         super().__init__()
-        self._reference_prefix = self.reference_name + "_"  # e.g. tabula_sapiens_
+        self._reference_prefix = f"{self.reference_name}_"  # e.g. tabula_sapiens_
 
     @property
     @abstractmethod
@@ -35,8 +41,9 @@ class BaseReference(ABC):
         pass
 
     def _get_object_keys(self, obj_type: str) -> List[str]:
-        assert obj_type in ["model", "dataset"]
-        store = self.model_store if obj_type == "model" else self.data_store
+        if obj_type not in [_OBJ_TYPE_MODEL, _OBJ_TYPE_DATASET]:
+            raise ValueError(f"Unrecognized obj_type: {obj_type}")
+        store = self.model_store if obj_type == _OBJ_TYPE_MODEL else self.data_store
         keys = [
             key for key in store.list_keys() if key.startswith(self._reference_prefix)
         ]
@@ -55,16 +62,17 @@ class BaseReference(ABC):
                 col_limit=len(df.columns),
                 clear_console=False,
             )
-        else:
-            return df
+        return df
 
     def list_models(self, pretty_print: bool = False) -> pd.DataFrame:
         """ Lists all available models associated with this reference """
-        return self._list_objects("model", "models_metadata.csv", pretty_print)
+        return self._list_objects(_OBJ_TYPE_MODEL, _MODELS_METADATA_FILE, pretty_print)
 
     def list_datasets(self, pretty_print: bool = False) -> pd.DataFrame:
         """ Lists all available datasets associated with this reference """
-        return self._list_objects("dataset", "datasets_metadata.csv", pretty_print)
+        return self._list_objects(
+            _OBJ_TYPE_DATASET, _DATASETS_METADATA_FILE, pretty_print
+        )
 
     def load_model(
         self,
@@ -99,8 +107,13 @@ class BaseReference(ABC):
             model_adata = models.loc[model_id, "train_dataset"]
             adata = self.load_dataset(model_adata)
         model_cls = getattr(importlib.import_module(module), cls)
-        model_file = self.model_store.download_file(model_id)
-        model_cls.load(os.path.dir_name(model_file), adata=adata, use_gpu=use_gpu)
+        model_path = self.model_store.download_file(model_id)
+        if model_path.endswith(".zip"):
+            shutil.unpack_archive(model_path, f"{dirname(model_path)}")
+            model_path = model_path[:-4]  # strip the .zip
+        else:
+            model_path = dirname(model_path)
+        return model_cls.load(model_path, adata=adata, use_gpu=use_gpu)
 
     def load_dataset(self, dataset_id: str) -> AnnData:
         """
