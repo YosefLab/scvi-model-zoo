@@ -16,9 +16,11 @@ class ZenodoStorage(BaseStorage):
         self._zenodo_base_url = (
             "https://zenodo.org/" if not sandbox else "https://sandbox.zenodo.org/"
         )
-        self._zenodo_record_url_template = self._zenodo_base_url + "record/{}/files/{}"
+        self._zenodo_record_url_template = (
+            f"{self._zenodo_base_url}record/{{}}/files/{{}}"
+        )
         self._zenodo_api_base_url = f"{self._zenodo_base_url}api/"
-        self._zenodo_api_records_url = f"{self._zenodo_base_url}records/"
+        self._zenodo_api_records_url = f"{self._zenodo_api_base_url}records/"
 
     def list_keys(self) -> List[str]:
         """ Returns all keys in this storage """

@@ -1,6 +1,6 @@
 from typing import Type
 
-from storage.base import BaseStorage
+from scvimadz.storage.base import BaseStorage
 
 from .base import BaseReference
 
@@ -15,7 +15,6 @@ class GenericReference(BaseReference):
         self._reference_name = reference_name
         self._model_store = model_store
         self._data_store = data_store
-        super().__init__()
 
     @property
     def reference_name(self) -> str:

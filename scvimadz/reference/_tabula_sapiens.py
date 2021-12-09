@@ -1,17 +1,16 @@
 from typing import Type
 
-from storage import ZenodoStorage
-from storage.base import BaseStorage
+from scvimadz.storage import ZenodoStorage
+from scvimadz.storage.base import BaseStorage
 
 from .base import BaseReference
 
 
 class TabulaSapiensReference(BaseReference):
     def __init__(self, data_dir: str):
-        # TODO replace 961966 (our sandbox record id) with our real repo id's
+        # TODO replace our sandbox record id's with our real repo id's
         self._model_store = ZenodoStorage("962638", data_dir)
         self._data_store = ZenodoStorage("962630", data_dir)
-        super().__init__()
 
     @property
     def reference_name(self) -> str:

@@ -6,10 +6,11 @@ from typing import List, Optional, Type, Union
 import anndata
 import pandas as pd
 import rich_dataframe
-from _utils import dirname
 from anndata import AnnData
 from scvi.model.base import BaseModelClass
-from storage.base import BaseStorage
+
+from scvimadz._utils import dirname
+from scvimadz.storage.base import BaseStorage
 
 _OBJ_TYPE_MODEL = "model"
 _OBJ_TYPE_DATASET = "dataset"
@@ -18,10 +19,6 @@ _DATASETS_METADATA_FILE = "datasets_metadata.csv"
 
 
 class BaseReference(ABC):
-    def __init__(self) -> None:
-        super().__init__()
-        self._reference_prefix = f"{self.reference_name}_"  # e.g. tabula_sapiens_
-
     @property
     @abstractmethod
     def reference_name(self) -> str:
@@ -40,12 +37,20 @@ class BaseReference(ABC):
         """ The backend store for datasets """
         pass
 
-    def _get_object_keys(self, obj_type: str) -> List[str]:
+    def _get_reference_prefix(self) -> str:
+        return f"{self.reference_name}_"  # e.g. tabula_sapiens_
+
+    def _get_store_for_object(self, obj_type: str) -> Type[BaseStorage]:
         if obj_type not in [_OBJ_TYPE_MODEL, _OBJ_TYPE_DATASET]:
             raise ValueError(f"Unrecognized obj_type: {obj_type}")
-        store = self.model_store if obj_type == _OBJ_TYPE_MODEL else self.data_store
+        return self.model_store if obj_type == _OBJ_TYPE_MODEL else self.data_store
+
+    def _get_object_keys(self, obj_type: str) -> List[str]:
+        store = self._get_store_for_object(obj_type)
         keys = [
-            key for key in store.list_keys() if key.startswith(self._reference_prefix)
+            key
+            for key in store.list_keys()
+            if key.startswith(self._get_reference_prefix())
         ]
         return keys
 
@@ -53,7 +58,7 @@ class BaseReference(ABC):
         self, obj_type: str, metadata_fn: str, pretty_print: bool = False
     ) -> pd.DataFrame:
         keys = self._get_object_keys(obj_type)
-        metadata_file = self.model_store.download_file(metadata_fn)
+        metadata_file = self._get_store_for_object(obj_type).download_file(metadata_fn)
         df = pd.read_csv(metadata_file, index_col="key").loc[keys]
         if pretty_print:
             rich_dataframe.prettify(
