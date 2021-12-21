@@ -5,7 +5,7 @@ from typing import List
 class BaseStorage(ABC):
     @abstractmethod
     def list_keys(self) -> List[str]:
-        """ Returns all keys in this storage """
+        """Returns all keys in this storage"""
         pass
 
     @abstractmethod

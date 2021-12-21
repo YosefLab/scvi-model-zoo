@@ -23,7 +23,7 @@ class ZenodoStorage(BaseStorage):
         self._zenodo_api_records_url = f"{self._zenodo_api_base_url}records/"
 
     def list_keys(self) -> List[str]:
-        """ Returns all keys in this storage """
+        """Returns all keys in this storage"""
         response = requests.get(self._zenodo_api_records_url + self._record_id)
         # for the status codes Zenodo uses, see https://developers.zenodo.org/#responses
         response.raise_for_status()

@@ -22,19 +22,19 @@ class BaseReference(ABC):
     @property
     @abstractmethod
     def reference_name(self) -> str:
-        """ The name of this reference """
+        """The name of this reference"""
         pass
 
     @property
     @abstractmethod
     def model_store(self) -> Type[BaseStorage]:
-        """ The backend store for models """
+        """The backend store for models"""
         pass
 
     @property
     @abstractmethod
     def data_store(self) -> Type[BaseStorage]:
-        """ The backend store for datasets """
+        """The backend store for datasets"""
         pass
 
     def _get_reference_prefix(self) -> str:
@@ -70,11 +70,11 @@ class BaseReference(ABC):
         return df
 
     def list_models(self, pretty_print: bool = False) -> pd.DataFrame:
-        """ Lists all available models associated with this reference """
+        """Lists all available models associated with this reference"""
         return self._list_objects(_OBJ_TYPE_MODEL, _MODELS_METADATA_FILE, pretty_print)
 
     def list_datasets(self, pretty_print: bool = False) -> pd.DataFrame:
-        """ Lists all available datasets associated with this reference """
+        """Lists all available datasets associated with this reference"""
         return self._list_objects(
             _OBJ_TYPE_DATASET, _DATASETS_METADATA_FILE, pretty_print
         )
