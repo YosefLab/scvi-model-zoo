@@ -84,7 +84,7 @@ intersphinx_mapping = dict(
 
 
 # General information about the project.
-project = u"mypackage"
+project = u"scvi-model-zoo"
 copyright = u"2021, Yosef Lab, UC Berkeley"
 author = u"Valeh Valiollah Pour Amiri"
 

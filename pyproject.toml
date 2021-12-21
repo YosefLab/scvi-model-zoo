@@ -17,8 +17,8 @@ classifiers = [
   "Operating System :: POSIX :: Linux",
   "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
-description = "Skeleton respository for generating novel scvi-tools models."
-documentation = "https://scvi-tools.org"
+description = "Repository of pre-trained scvi models and datasets"
+documentation = "https://scvi-model-zoo.readthedocs.io/en/latest/"
 homepage = "https://github.com/YosefLab/scvi-model-zoo"
 license = "BSD-3-Clause"
 name = "scvi-model-zoo"
