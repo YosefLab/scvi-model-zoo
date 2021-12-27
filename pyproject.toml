@@ -79,3 +79,8 @@ requires = [
   "poetry>=1.0",
   "setuptools", # keep it here or "pip install -e" would fail
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "network-tests: tests that involve network operations",
+]
