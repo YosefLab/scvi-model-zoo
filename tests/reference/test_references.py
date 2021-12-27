@@ -2,9 +2,9 @@ from scvimadz.reference import GenericReference
 from tests.mock import MockStorage
 
 
-def test_reference():
-    model_store = MockStorage("models")
-    dataset_store = MockStorage("datasets")
+def test_reference(save_path):
+    model_store = MockStorage("models", save_path)
+    dataset_store = MockStorage("datasets", save_path)
     generic_ref = GenericReference(
         "hca", model_store=model_store, data_store=dataset_store
     )
@@ -42,8 +42,8 @@ def test_reference():
 
 
 def test_reference_load_model(save_path):
-    model_store = MockStorage("models", save_path=save_path)
-    dataset_store = MockStorage("datasets")
+    model_store = MockStorage("models", save_path)
+    dataset_store = MockStorage("datasets", save_path)
     generic_ref = GenericReference(
         "hca", model_store=model_store, data_store=dataset_store
     )
