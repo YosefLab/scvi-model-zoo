@@ -22,7 +22,7 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skip_network)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def save_path(tmpdir_factory):
     dir = tmpdir_factory.mktemp("temp_data", numbered=False)
     path = str(dir)
