@@ -24,6 +24,6 @@ def pytest_collection_modifyitems(config, items):
 
 @pytest.fixture(scope="function")
 def save_path(tmpdir):
-    dir = tmpdir.mkdir("temp_data")
-    yield str(dir) + "/"
+    data_dir = tmpdir.mkdir("temp_data")
+    yield str(data_dir) + "/"
     shutil.rmtree(str(tmpdir))
