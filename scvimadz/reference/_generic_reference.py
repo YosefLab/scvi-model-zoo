@@ -6,6 +6,20 @@ from .base import BaseReference
 
 
 class GenericReference(BaseReference):
+    """
+    Generic reference that can be specified to a given model/data store with
+    the init parameters.
+
+    Parameters
+    ----------
+    reference_name
+        Name of the reference
+    model_store
+        BaseStorage for the model store
+    data_store
+        BaseStorage for the data store
+    """
+
     def __init__(
         self,
         reference_name: str,

@@ -7,6 +7,15 @@ from .base import BaseReference
 
 
 class TabulaSapiensReference(BaseReference):
+    """
+    Reference for Tabula Sapiens data.
+
+    Parameters
+    ----------
+    data_dir
+        Absolute path to the directory that will be used to download data to.
+    """
+
     def __init__(self, data_dir: str):
         # TODO replace our test record id's with our real repo id's
         self._model_store = ZenodoStorage("5805554", data_dir)
