@@ -23,8 +23,7 @@ def pytest_collection_modifyitems(config, items):
 
 
 @pytest.fixture(scope="function")
-def save_path(tmpdir_factory):
-    dir = tmpdir_factory.mktemp("temp_data", numbered=False)
-    path = str(dir)
-    yield path + "/"
-    shutil.rmtree(str(tmpdir_factory.getbasetemp()))
+def save_path(tmpdir):
+    dir = tmpdir.mkdir("temp_data")
+    yield str(dir) + "/"
+    shutil.rmtree(str(tmpdir))
