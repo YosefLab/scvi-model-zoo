@@ -7,8 +7,7 @@ from .base import BaseReference
 
 class GenericReference(BaseReference):
     """
-    Generic reference that can be specified to a given model/data store with
-    the init parameters.
+    Generic reference that can be specified to a given model/data store with the init parameters.
 
     Parameters
     ----------

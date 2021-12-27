@@ -23,7 +23,7 @@ class ZenodoStorage(BaseStorage):
         self._zenodo_api_records_url = f"{self._zenodo_api_base_url}records/"
 
     def list_keys(self) -> List[str]:
-        """Returns all keys in this storage"""
+        """Returns all keys in this storage."""
         response = requests.get(self._zenodo_api_records_url + self._record_id)
         # for the status codes Zenodo uses, see https://developers.zenodo.org/#responses
         response.raise_for_status()
@@ -34,13 +34,16 @@ class ZenodoStorage(BaseStorage):
 
     def download_file(self, key: str) -> str:
         """
-        Downloads the file with the given id to the path rooted at the user-provided `data_dir`,
-        else raises an error. Returns the full path to the downloaded file.
+        Downloads the file with the given id to the path rooted at the user-provided `data_dir`, else raises an error.
 
         Parameters
         ----------
         key
             key of the file to download
+
+        Returns
+        -------
+        The full path to the downloaded file.
         """
         if key not in self.list_keys():
             raise ValueError(f"Key {key} not found.")
