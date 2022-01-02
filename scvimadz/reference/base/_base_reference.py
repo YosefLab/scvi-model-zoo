@@ -1,4 +1,5 @@
 import importlib
+import os
 import shutil
 from abc import ABC, abstractmethod
 from typing import List, Optional, Type, Union
@@ -9,7 +10,6 @@ import rich_dataframe
 from anndata import AnnData
 from scvi.model.base import BaseModelClass
 
-from scvimadz._utils import dirname
 from scvimadz.storage.base import BaseStorage
 
 _OBJ_TYPE_MODEL = "model"
@@ -114,10 +114,10 @@ class BaseReference(ABC):
         model_cls = getattr(importlib.import_module(module), cls)
         model_path = self.model_store.download_file(model_id)
         if model_path.endswith(".zip"):
-            shutil.unpack_archive(model_path, f"{dirname(model_path)}")
+            shutil.unpack_archive(model_path, f"{os.path.dirname(model_path)}")
             model_path = model_path[:-4]  # strip the .zip
         else:
-            model_path = dirname(model_path)
+            model_path = os.path.dirname(model_path)
         return model_cls.load(model_path, adata=adata, use_gpu=use_gpu)
 
     def load_dataset(self, dataset_id: str) -> AnnData:
