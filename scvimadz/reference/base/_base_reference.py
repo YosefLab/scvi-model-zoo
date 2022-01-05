@@ -2,6 +2,7 @@ import importlib
 import os
 import shutil
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import List, Optional, Type, Union
 
 import anndata
@@ -12,10 +13,15 @@ from scvi.model.base import BaseModelClass
 
 from scvimadz.storage.base import BaseStorage
 
-_OBJ_TYPE_MODEL = "model"
-_OBJ_TYPE_DATASET = "dataset"
-_MODELS_METADATA_FILE = "models_metadata.csv"
-_DATASETS_METADATA_FILE = "datasets_metadata.csv"
+
+class _Obj_Type(Enum):
+    MODEL = "model"
+    DATASET = "dataset"
+
+
+class _Metadata_File(Enum):
+    MODELS_METADATA_FILE = "models_metadata.csv"
+    DATASETS_METADATA_FILE = "datasets_metadata.csv"
 
 
 class BaseReference(ABC):
@@ -40,12 +46,12 @@ class BaseReference(ABC):
     def _get_reference_prefix(self) -> str:
         return f"{self.reference_name}_"  # e.g. tabula_sapiens_
 
-    def _get_store_for_object(self, obj_type: str) -> Type[BaseStorage]:
-        if obj_type not in [_OBJ_TYPE_MODEL, _OBJ_TYPE_DATASET]:
+    def _get_store_for_object(self, obj_type: _Obj_Type) -> Type[BaseStorage]:
+        if not isinstance(obj_type, _Obj_Type):
             raise ValueError(f"Unrecognized obj_type: {obj_type}")
-        return self.model_store if obj_type == _OBJ_TYPE_MODEL else self.data_store
+        return self.model_store if obj_type is _Obj_Type.MODEL else self.data_store
 
-    def _get_object_keys(self, obj_type: str) -> List[str]:
+    def _get_object_keys(self, obj_type: _Obj_Type) -> List[str]:
         store = self._get_store_for_object(obj_type)
         keys = [
             key
@@ -55,10 +61,15 @@ class BaseReference(ABC):
         return keys
 
     def _list_objects(
-        self, obj_type: str, metadata_fn: str, pretty_print: bool = False
+        self,
+        obj_type: _Obj_Type,
+        metadata_fn: _Metadata_File,
+        pretty_print: bool = False,
     ) -> pd.DataFrame:
         keys = self._get_object_keys(obj_type)
-        metadata_file = self._get_store_for_object(obj_type).download_file(metadata_fn)
+        metadata_file = self._get_store_for_object(obj_type).download_file(
+            metadata_fn.value
+        )
         df = pd.read_csv(metadata_file, index_col="key").loc[keys]
         if pretty_print:
             rich_dataframe.prettify(
@@ -71,12 +82,14 @@ class BaseReference(ABC):
 
     def list_models(self, pretty_print: bool = False) -> pd.DataFrame:
         """Lists all available models associated with this reference."""
-        return self._list_objects(_OBJ_TYPE_MODEL, _MODELS_METADATA_FILE, pretty_print)
+        return self._list_objects(
+            _Obj_Type.MODEL, _Metadata_File.MODELS_METADATA_FILE, pretty_print
+        )
 
     def list_datasets(self, pretty_print: bool = False) -> pd.DataFrame:
         """Lists all available datasets associated with this reference."""
         return self._list_objects(
-            _OBJ_TYPE_DATASET, _DATASETS_METADATA_FILE, pretty_print
+            _Obj_Type.DATASET, _Metadata_File.DATASETS_METADATA_FILE, pretty_print
         )
 
     def load_model(
