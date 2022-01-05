@@ -133,5 +133,5 @@ class BaseReference(ABC):
         -------
         An instance of :class:`~anndata.AnnData` associated with the given dataset id.
         """
-        data_file = self.data_store.download_file(dataset_id)
-        return anndata.read_h5ad(data_file)
+        data_file_path = self.data_store.download_file(dataset_id)
+        return anndata.read_h5ad(data_file_path)
