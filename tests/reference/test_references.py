@@ -38,7 +38,7 @@ def test_reference(save_path):
         datasets_df.index[0] == "hca_dataset_dcfaad7a-70a4-4669-87d2-7bb241673097.h5ad"
     )
     assert datasets_df.columns.to_list() == ["cell_count", "cite"]
-    assert datasets_df["cell_count"].iloc[0] == 20000
+    assert datasets_df["cell_count"].iloc[0] == 100
 
 
 def test_reference_load_model(save_path):
@@ -51,5 +51,5 @@ def test_reference_load_model(save_path):
     model = generic_ref.load_model("hca_model_80262d08-4a30-4071-a3c6-96274182646d.zip")
     assert str(type(model)) == "<class 'scvi.model._scvi.SCVI'>"
     assert model.is_trained
-    assert model.adata.n_obs == 18641
-    assert model.adata.n_vars == 1200
+    assert model.adata.n_obs == 100
+    assert model.adata.n_vars == 35

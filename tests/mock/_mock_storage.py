@@ -27,14 +27,6 @@ class MockStorage(BaseStorage):
             dest = os.path.join(self._data_dir, elem)
             shutil.copy(src, dest)
 
-        # for datasets, we store them in zip format to save space on Git. Unzip those here.
-        if data_type == "datasets":
-            for elem in os.listdir(self._data_dir):
-                if elem.endswith(".zip"):
-                    elem_path = os.path.join(self._data_dir, elem)
-                    shutil.unpack_archive(elem_path, extract_dir=self._data_dir)
-                    os.remove(elem_path)
-
     def list_keys(self) -> List[str]:
         return os.listdir(self._data_dir)
 
