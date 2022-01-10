@@ -80,13 +80,13 @@ class BaseReference(ABC):
             )
         return df
 
-    def list_models(self, pretty_print: bool = False) -> pd.DataFrame:
+    def get_models_df(self, pretty_print: bool = False) -> pd.DataFrame:
         """Lists all available models associated with this reference."""
         return self._list_objects(
             _Obj_Type.MODEL, _Metadata_File.MODELS_METADATA_FILE, pretty_print
         )
 
-    def list_datasets(self, pretty_print: bool = False) -> pd.DataFrame:
+    def get_datasets_df(self, pretty_print: bool = False) -> pd.DataFrame:
         """Lists all available datasets associated with this reference."""
         return self._list_objects(
             _Obj_Type.DATASET, _Metadata_File.DATASETS_METADATA_FILE, pretty_print
@@ -116,11 +116,14 @@ class BaseReference(ABC):
         -------
         An instance of :class:`~scvi.model.base.BaseModelClass` associated with the given model id.
         """
-        models = self.list_models()
+        models = self.get_models_df()
         # get the cell that contains the cls_name for this model, it will be like: scvi.model.TOTALVI
         model_cls_name = models.loc[model_id, "cls_name"]
         cls = model_cls_name.split(".")[-1]
         module = ".".join(model_cls_name.split(".")[:-1])
+        # We must have an anndata object to load the model with. If no adata is provided, then use
+        # the model's metadata to determine where to fetch its associated train dataset from, and
+        # use that to load the model
         if adata is None:
             model_adata = models.loc[model_id, "train_dataset"]
             adata = self.load_dataset(model_adata)

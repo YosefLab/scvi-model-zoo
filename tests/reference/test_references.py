@@ -20,7 +20,7 @@ def test_reference(save_path):
         exception_raised = True
     assert exception_raised
 
-    models_df = generic_ref.list_models()
+    models_df = generic_ref.get_models_df()
     assert len(models_df) == 1
     assert models_df.index[0] == "hca_model_80262d08-4a30-4071-a3c6-96274182646d.zip"
     assert models_df.columns.to_list() == [
@@ -32,7 +32,7 @@ def test_reference(save_path):
     ]
     assert models_df["cls_name"].iloc[0] == "scvi.model.SCVI"
 
-    datasets_df = generic_ref.list_datasets()
+    datasets_df = generic_ref.get_datasets_df()
     assert len(datasets_df) == 1
     assert (
         datasets_df.index[0] == "hca_dataset_dcfaad7a-70a4-4669-87d2-7bb241673097.h5ad"
