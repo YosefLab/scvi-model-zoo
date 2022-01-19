@@ -7,6 +7,17 @@ from scvimadz.storage.base import BaseStorage
 
 
 class MockStorage(BaseStorage):
+    """
+    Represents a file system-based storage used in tests to avoid network round trips.
+
+    Parameters
+    ----------
+    data_type
+        Nature of the data stored, one of "datasets" or "models"
+    save_path
+        Absolute path on the file system where the data lives
+    """
+
     def __init__(self, data_type: str, save_path: str) -> None:
         if data_type not in ["datasets", "models"]:
             raise ValueError(
