@@ -1,6 +1,7 @@
 import importlib
 import os
 import shutil
+import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List, Optional, Type, Union
@@ -151,3 +152,42 @@ class BaseReference(ABC):
         """
         data_file_path = self.data_store.download_file(dataset_id)
         return anndata.read_h5ad(data_file_path)
+
+    def save_dataset(
+        self,
+        filepath: str,
+        token: Optional[str],
+        dataset_name: Optional[str] = None,
+        is_cite: bool = False,
+    ) -> str:
+        """
+        Saves the dataset at the given path and returns its corresponding dataset id.
+
+        Parameters
+        ----------
+        filepath
+            the path to the dataset to save
+        token
+            some storage backends (such as Zenodo) require a token. This arg is
+            required to remind users to provide an upload token if their backend
+            requires one. Provide `None` if not applicable.
+        dataset_name
+            the desired dataset name if different from filename (which we pick if this arg is None).
+            The final name will have "_dataset_<GUID>" appended to it.
+        is_cite
+            True if the dataset contains CITE (protein) data, False otherwise
+
+        Returns
+        -------
+        The corresponding dataset id if the dataset was saved successfully.
+        """
+        # TODO need to update the dataset metadata.csv too
+        guid = str(uuid.uuid4())
+        prefix = self._get_reference_prefix()
+        dataset_id = f"{prefix}{guid}"
+        # filename = filepath.split("/")[-1]
+        # dirname = os.path.dirname(filepath)
+        # filepath = "{}{}"
+        # shutil.move()
+        self.data_store.upload_file(filepath, dataset_id, token)
+        return dataset_id

@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional
 
 
 class BaseStorage(ABC):
     """
-    Base class for Storage classes, which represnet different kinds of storage backends for the data.
+    Base class for Storage classes, which represent different kinds of storage backends for the data.
 
     For example we can have a Zenodo storage backend (remote) or a file system directory backend (local).
     The storage recognizes objects via their keys, which are unique object identifiers. Typically these are
@@ -38,5 +38,17 @@ class BaseStorage(ABC):
         Returns
         -------
         The full path to the downloaded file.
+        """
+        pass
+
+    @abstractmethod
+    def upload_file(self, path: str, filename: str, token: Optional[str]) -> str:
+        """
+        Uploads the file at the given path.
+
+        Parameters
+        ----------
+        path
+            full path to the file to upload
         """
         pass
