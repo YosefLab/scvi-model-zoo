@@ -1,5 +1,31 @@
+import io
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List, Optional, Union
+
+
+class FileToUpload:
+    """
+    Class that represents a file to upload
+
+    Parameters
+    ----------
+    data
+        Data stream or path to the file to upload
+    upload_as
+        Name under which to upload the data
+    """
+
+    def __init__(self, data: Union[str, io.StringIO], upload_as: str) -> None:
+        self._data = data
+        self._upload_as = upload_as
+
+    @property
+    def data(self) -> Union[str, io.StringIO]:
+        return self._data
+
+    @property
+    def upload_as(self) -> str:
+        return self._upload_as
 
 
 class BaseStorage(ABC):
@@ -42,13 +68,13 @@ class BaseStorage(ABC):
         pass
 
     @abstractmethod
-    def upload_file(self, path: str, filename: str, token: Optional[str]) -> str:
+    def upload_files(
+        self,
+        files: List[FileToUpload],
+        token: Optional[str],
+        ok_to_reversion_datastore: Optional[bool],
+    ) -> str:
         """
-        Uploads the file at the given path.
-
-        Parameters
-        ----------
-        path
-            full path to the file to upload
+        TODO
         """
         pass

@@ -1,4 +1,5 @@
 import importlib
+import io
 import os
 import shutil
 import uuid
@@ -12,7 +13,7 @@ import rich_dataframe
 from anndata import AnnData
 from scvi.model.base import BaseModelClass
 
-from scvimadz.storage.base import BaseStorage
+from scvimadz.storage.base import BaseStorage, FileToUpload
 
 
 class _Obj_Type(Enum):
@@ -23,6 +24,33 @@ class _Obj_Type(Enum):
 class _Metadata_File(Enum):
     MODELS_METADATA_FILE = "models_metadata.csv"
     DATASETS_METADATA_FILE = "datasets_metadata.csv"
+
+
+# TODO move these two into a MetadataManager class that takes an instance of the backend store
+# and encapsulates metada retrieval/update logic. It can then be overridden independently
+# of the rest if needed
+class DatasetMetadata:
+    def __init__(self, cell_count: int, is_cite: bool) -> None:
+        self._cell_count = cell_count
+        self._is_cite = "Yes" if is_cite else "No"
+
+    @property
+    def cell_count(self) -> int:
+        return self._cell_count
+
+    @property
+    def is_cite(self) -> bool:
+        return self._is_cite
+
+
+# TODO in progress...
+class ModelMetadata:
+    def __init__(self, hyperparameter_alpha: str) -> None:
+        self._hyperparameter_alpha = hyperparameter_alpha
+
+    @property
+    def hyperparameter_alpha(self) -> str:
+        return self._hyperparameter_alpha
 
 
 class BaseReference(ABC):
@@ -52,12 +80,14 @@ class BaseReference(ABC):
             raise ValueError(f"Unrecognized obj_type: {obj_type}")
         return self.model_store if obj_type is _Obj_Type.MODEL else self.data_store
 
-    def _get_object_keys(self, obj_type: _Obj_Type) -> List[str]:
+    def _get_object_keys(
+        self, obj_type: _Obj_Type, all_keys: bool = False
+    ) -> List[str]:
         store = self._get_store_for_object(obj_type)
         keys = [
             key
             for key in store.list_keys()
-            if key.startswith(self._get_reference_prefix())
+            if all_keys or key.startswith(self._get_reference_prefix())
         ]
         return keys
 
@@ -66,12 +96,14 @@ class BaseReference(ABC):
         obj_type: _Obj_Type,
         metadata_fn: _Metadata_File,
         pretty_print: bool = False,
+        all_keys: bool = False,
     ) -> pd.DataFrame:
-        keys = self._get_object_keys(obj_type)
+        keys = self._get_object_keys(obj_type, all_keys)
         metadata_file = self._get_store_for_object(obj_type).download_file(
             metadata_fn.value
         )
-        df = pd.read_csv(metadata_file, index_col="key").loc[keys]
+        df = pd.read_csv(metadata_file, index_col="key")
+        df = df.loc[keys] if not all_keys else df
         if pretty_print:
             rich_dataframe.prettify(
                 df,
@@ -92,6 +124,19 @@ class BaseReference(ABC):
         return self._list_objects(
             _Obj_Type.DATASET, _Metadata_File.DATASETS_METADATA_FILE, pretty_print
         )
+
+    def _augment_datasets_df(self, new: dict) -> pd.DataFrame:
+        """Add the given record to the datasets_metadata dataframe and return the updated dataframe"""
+        if not new["key"][0].startswith(self._get_reference_prefix()):
+            raise ValueError(
+                f"Can only add new records for reference '{self.reference_name}'"
+            )
+        metadata_df = self._list_objects(
+            _Obj_Type.DATASET, _Metadata_File.DATASETS_METADATA_FILE, all_keys=True
+        )
+        new_df = pd.DataFrame(new)
+        metadata_df = metadata_df.reset_index().append(new_df).set_index("key")
+        return metadata_df
 
     def load_model(
         self,
@@ -157,8 +202,8 @@ class BaseReference(ABC):
         self,
         filepath: str,
         token: Optional[str],
-        dataset_name: Optional[str] = None,
-        is_cite: bool = False,
+        ok_to_reversion_datastore: Optional[bool],
+        metadata: DatasetMetadata,
     ) -> str:
         """
         Saves the dataset at the given path and returns its corresponding dataset id.
@@ -171,23 +216,32 @@ class BaseReference(ABC):
             some storage backends (such as Zenodo) require a token. This arg is
             required to remind users to provide an upload token if their backend
             requires one. Provide `None` if not applicable.
-        dataset_name
-            the desired dataset name if different from filename (which we pick if this arg is None).
-            The final name will have "_dataset_<GUID>" appended to it.
-        is_cite
-            True if the dataset contains CITE (protein) data, False otherwise
+        ok_to_reversion_datastore
+            Some storage backends (such as Zenodo) require creating a new version
+            of the storage to create new files. This arg is required to ask users
+            to provide their consent to this consequence. Provide `None` if this is
+            not applicable to your storage backend.
+        metadata
+            Required metadata for this dataset
 
         Returns
         -------
         The corresponding dataset id if the dataset was saved successfully.
         """
-        # TODO need to update the dataset metadata.csv too
-        guid = str(uuid.uuid4())
-        prefix = self._get_reference_prefix()
-        dataset_id = f"{prefix}{guid}"
-        # filename = filepath.split("/")[-1]
-        # dirname = os.path.dirname(filepath)
-        # filepath = "{}{}"
-        # shutil.move()
-        self.data_store.upload_file(filepath, dataset_id, token)
+        dataset_id = f"{self._get_reference_prefix()}dataset_{str(uuid.uuid4())}.h5ad"
+        # Update the metadata csv file
+        new = {
+            "key": [dataset_id],
+            "cell_count": [metadata.cell_count],
+            "cite": [str(metadata.is_cite)],
+        }
+        new_metadata_df = self._augment_datasets_df(new)
+        new_metadata = io.StringIO(new_metadata_df.to_csv())
+        # Upload both files in a single transaction
+        files = [
+            FileToUpload(filepath, dataset_id),
+            FileToUpload(new_metadata, _Metadata_File.DATASETS_METADATA_FILE.value),
+        ]
+        self.data_store.upload_files(files, token, ok_to_reversion_datastore)
+        print(f"Uploaded dataset successfully. Dataset_id is: {dataset_id}.")
         return dataset_id

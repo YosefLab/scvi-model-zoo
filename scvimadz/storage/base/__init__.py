@@ -1,3 +1,3 @@
-from ._base_storage import BaseStorage
+from ._base_storage import BaseStorage, FileToUpload
 
-__all__ = ["BaseStorage"]
+__all__ = ["BaseStorage", "FileToUpload"]

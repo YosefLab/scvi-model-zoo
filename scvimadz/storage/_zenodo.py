@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import requests
 
-from .base import BaseStorage
+from .base import BaseStorage, FileToUpload
 
 
 class ZenodoStorage(BaseStorage):
@@ -22,7 +22,9 @@ class ZenodoStorage(BaseStorage):
         )
         self._zenodo_api_base_url = f"{self._zenodo_base_url}api/"
         self._zenodo_api_records_url = f"{self._zenodo_api_base_url}records/"
-        self._zenodo_api_depositions_url = f"{self._zenodo_api_base_url}depositions/"
+        self._zenodo_api_depositions_url = (
+            f"{self._zenodo_api_base_url}deposit/depositions/"
+        )
 
     def list_keys(self) -> List[str]:
         """Returns all keys in this storage."""
@@ -58,36 +60,74 @@ class ZenodoStorage(BaseStorage):
             f.write(response.content)
         return file_path
 
-    def upload_file(self, path: str, filename: str, token: Optional[str]) -> str:
+    def upload_files(
+        self,
+        files: List[FileToUpload],
+        token: Optional[str],
+        ok_to_reversion_datastore: Optional[bool],
+    ) -> str:
         """
-        Uploads the file at the given path.
+        Uploads the given files in a single transaction and bumps the version of the store if all uploads succeed,
+        otherwise discards the new version draft.
 
         Parameters
         ----------
-        path
-            full path to the file to upload
+        TODO
         """
-        if self._sandbox:
+        if self._sandbox is True:
             raise NotImplementedError()
-        # Query all depositions using the generic depositions url
-        params = {"access_token": token}
-        response = requests.get(self._zenodo_api_depositions_url, params=params)
-        response.raise_for_status()
-        # Grab the deposition corresponding to the self's record_id
-        response_json = response.json()
-        depositions = [
-            elem for elem in response_json if str(elem["id"]) == self._record_id
-        ]
-        if len(depositions) > 1:
+        if not ok_to_reversion_datastore:
             raise ValueError(
-                f"More than one deposition found for the record id {self._record_id}"
+                "Uploading new files to a published Zenodo repository requires versioning it."
             )
-        deposition = depositions[0]
-        # Get the bucket link for the deposition
-        bucket_url = deposition["links"]["bucket"]
-        # Upload file to the bucket link
-        with open(path, "rb") as f:
-            response = requests.put(f"{bucket_url}{filename}", data=f, params=params)
-        # TODO publish if needed?
-        # >>> r = requests.post('https://zenodo.org/api/deposit/depositions/%s/actions/publish' % deposition_id, params={'access_token': ACCESS_TOKEN} )
-        pass
+        # Create a new version of the deposition corresponding to the current record_id
+        # Only a single version can be open at a time, so if one already exists this will return that
+        params = {"access_token": token}
+        response = requests.post(
+            f"{self._zenodo_api_depositions_url}{self._record_id}/actions/newversion",
+            params=params,
+        )
+        response.raise_for_status()
+        print(response.json()["links"]["latest_draft_html"])  # TODO remove
+        draft_deposition_url = response.json()["links"]["latest_draft"]
+        draft_reposition_id = None
+        try:
+            # Get the draft deposition id and the bucket link for the draft deposition
+            response = requests.get(draft_deposition_url, params=params)
+            response.raise_for_status()
+            draft_deposition = response.json()
+            draft_reposition_id = draft_deposition["id"]
+            bucket_url = draft_deposition["links"]["bucket"]
+
+            def send_data(data, upload_as):
+                response = requests.put(
+                    f"{bucket_url}/{upload_as}", data=data, params=params
+                )
+                response.raise_for_status()
+                return response
+
+            for file in files:
+                # Upload file to the bucket url
+                if type(file.data) == str:
+                    with open(file.data, "rb") as f:
+                        response = send_data(f, file.upload_as)
+                else:
+                    response = send_data(file.data, file.upload_as)
+            # If all went well, publish the new version
+            response = requests.post(
+                f"{self._zenodo_api_depositions_url}{draft_reposition_id}/actions/publish",
+                params=params,
+            )
+            response.raise_for_status()
+            self._record_id = str(response.json()["id"])
+            print(f"Published new version. New doi: {self._record_id}")
+        except Exception as e:
+            print(f"Failed to upload. Error: {e}")
+            if draft_reposition_id is not None:
+                print("Discarding draft.")
+                response = requests.post(
+                    f"{self._zenodo_api_depositions_url}{draft_reposition_id}/actions/discard",
+                    params=params,
+                )
+                response.raise_for_status()
+            raise
