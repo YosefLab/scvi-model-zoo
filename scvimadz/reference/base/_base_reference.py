@@ -126,7 +126,7 @@ class BaseReference(ABC):
         )
 
     def _augment_datasets_df(self, new: dict) -> pd.DataFrame:
-        """Add the given record to the datasets_metadata dataframe and return the updated dataframe"""
+        """Add the given record to the datasets_metadata dataframe and return the updated dataframe."""
         if not new["key"][0].startswith(self._get_reference_prefix()):
             raise ValueError(
                 f"Can only add new records for reference '{self.reference_name}'"

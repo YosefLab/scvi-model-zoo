@@ -5,7 +5,7 @@ from typing import List, Optional, Union
 
 class FileToUpload:
     """
-    Class that represents a file to upload
+    Class that represents a file to upload.
 
     Parameters
     ----------

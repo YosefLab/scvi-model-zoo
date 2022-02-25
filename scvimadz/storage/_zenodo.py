@@ -67,8 +67,7 @@ class ZenodoStorage(BaseStorage):
         ok_to_reversion_datastore: Optional[bool],
     ) -> str:
         """
-        Uploads the given files in a single transaction and bumps the version of the store if all uploads succeed,
-        otherwise discards the new version draft.
+        Uploads the given files in a single transaction and bumps the version of the store if all uploads succeed, otherwise discards the new version draft.
 
         Parameters
         ----------
@@ -108,7 +107,7 @@ class ZenodoStorage(BaseStorage):
 
             for file in files:
                 # Upload file to the bucket url
-                if type(file.data) == str:
+                if isinstance(file.data, str):
                     with open(file.data, "rb") as f:
                         response = send_data(f, file.upload_as)
                 else:
