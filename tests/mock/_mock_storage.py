@@ -1,9 +1,9 @@
 import os
 import shutil
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
-from scvimadz.storage.base import BaseStorage
+from scvimadz.storage.base import BaseStorage, FileToUpload
 
 
 class MockStorage(BaseStorage):
@@ -45,3 +45,12 @@ class MockStorage(BaseStorage):
         if key not in self.list_keys():
             raise ValueError(f"Key {key} not found.")
         return os.path.join(self._data_dir, key)
+
+    def upload_files(
+        self,
+        files: List[FileToUpload],
+        token: Optional[str],
+        ok_to_reversion_datastore: Optional[bool],
+    ) -> str:
+        # TODO
+        pass

@@ -211,9 +211,9 @@ class BaseReference(ABC):
         Parameters
         ----------
         filepath
-            the path to the dataset to save
+            The path to the dataset to save
         token
-            some storage backends (such as Zenodo) require a token. This arg is
+            Some storage backends (such as Zenodo) require a token. This arg is
             required to remind users to provide an upload token if their backend
             requires one. Provide `None` if not applicable.
         ok_to_reversion_datastore

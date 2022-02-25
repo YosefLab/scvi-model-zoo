@@ -67,11 +67,18 @@ class ZenodoStorage(BaseStorage):
         ok_to_reversion_datastore: Optional[bool],
     ) -> str:
         """
+        Uploads the given files.
+
         Uploads files in a single transaction and bumps the store version if all uploads succeed, else discards the new version draft.
 
         Parameters
         ----------
-        TODO
+        files
+            List of files to upload.
+        token
+            Access token to use for the upload. Write and Action scopes are required.
+        ok_to_reversion_datastore
+            Whether it is ok to bump the store version.
         """
         if self._sandbox is True:
             raise NotImplementedError()
@@ -87,7 +94,6 @@ class ZenodoStorage(BaseStorage):
             params=params,
         )
         response.raise_for_status()
-        print(response.json()["links"]["latest_draft_html"])  # TODO remove
         draft_deposition_url = response.json()["links"]["latest_draft"]
         draft_reposition_id = None
         try:

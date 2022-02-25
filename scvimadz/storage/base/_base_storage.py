@@ -75,6 +75,17 @@ class BaseStorage(ABC):
         ok_to_reversion_datastore: Optional[bool],
     ) -> str:
         """
-        TODO.
+        Uploads the given files.
+
+        Uploads files in a single transaction and bumps the store version if all uploads succeed, else discards the new version draft.
+
+        Parameters
+        ----------
+        files
+            List of files to upload.
+        token
+            Access token to use for the upload. Write and Action scopes are required.
+        ok_to_reversion_datastore
+            Whether it is ok to bump the store version.
         """
         pass

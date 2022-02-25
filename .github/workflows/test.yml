@@ -39,7 +39,7 @@ jobs:
         flake8
     - name: Format with black
       run: |
-        black --version --diff --check .
+        black --version
         black --diff --check .
     - name: Test with pytest
       run: |
