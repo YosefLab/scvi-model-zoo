@@ -76,12 +76,9 @@ def test_reference_save_dataset(save_path):
 
     datasets_df = generic_ref.get_datasets_df()
     assert len(datasets_df) == 2
-    assert (
-        datasets_df.index[0] == "hca_dataset_dcfaad7a-70a4-4669-87d2-7bb241673097.h5ad"
-    )
-    assert datasets_df.index[1] == dataset_id
+    existing_dataset_id = "hca_dataset_dcfaad7a-70a4-4669-87d2-7bb241673097.h5ad"
     assert datasets_df.columns.to_list() == ["cell_count", "cite"]
-    assert datasets_df["cell_count"].iloc[0] == 100
-    assert datasets_df["cite"].iloc[0] == "No"
-    assert datasets_df["cell_count"].iloc[1] == 42
-    assert datasets_df["cite"].iloc[1] == "Yes"
+    assert datasets_df["cell_count"].loc[existing_dataset_id] == 100
+    assert datasets_df["cell_count"].loc[dataset_id] == 42
+    assert datasets_df["cite"].loc[existing_dataset_id] == "No"
+    assert datasets_df["cite"].loc[dataset_id] == "Yes"
