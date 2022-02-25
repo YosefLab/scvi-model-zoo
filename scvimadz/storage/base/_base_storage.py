@@ -75,6 +75,6 @@ class BaseStorage(ABC):
         ok_to_reversion_datastore: Optional[bool],
     ) -> str:
         """
-        TODO
+        TODO.
         """
         pass

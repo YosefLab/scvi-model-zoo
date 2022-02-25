@@ -67,7 +67,7 @@ class ZenodoStorage(BaseStorage):
         ok_to_reversion_datastore: Optional[bool],
     ) -> str:
         """
-        Uploads the given files in a single transaction and bumps the version of the store if all uploads succeed, otherwise discards the new version draft.
+        Uploads files in a single transaction and bumps the store version if all uploads succeed, else discards the new version draft.
 
         Parameters
         ----------
