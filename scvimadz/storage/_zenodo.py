@@ -65,7 +65,7 @@ class ZenodoStorage(BaseStorage):
         files: List[FileToUpload],
         token: Optional[str],
         ok_to_reversion_datastore: Optional[bool],
-    ) -> str:
+    ) -> None:
         """
         Uploads the given files.
 
