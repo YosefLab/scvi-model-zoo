@@ -39,7 +39,8 @@ jobs:
         flake8
     - name: Format with black
       run: |
-        black --verbose --diff --check .
+        black --version --diff --check .
+        black --diff --check .
     - name: Test with pytest
       run: |
         pytest --cov-report=xml --cov=scvimadz --network-tests
