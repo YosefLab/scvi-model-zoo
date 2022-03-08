@@ -1,3 +1,3 @@
-from ._base_reference import BaseReference
+from ._base_reference import BaseReference, DatasetMetadata
 
-__all__ = ["BaseReference"]
+__all__ = ["BaseReference", "DatasetMetadata"]

@@ -84,9 +84,9 @@ intersphinx_mapping = dict(
 
 
 # General information about the project.
-project = u"scvi-model-zoo"
-copyright = u"2021, Yosef Lab, UC Berkeley"
-author = u"Valeh Valiollah Pour Amiri"
+project = "scvi-model-zoo"
+copyright = "2021, Yosef Lab, UC Berkeley"
+author = "Valeh Valiollah Pour Amiri"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout

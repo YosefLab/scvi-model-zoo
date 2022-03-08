@@ -1,4 +1,6 @@
-from scvimadz.reference import GenericReference
+import os
+
+from scvimadz.reference import DatasetMetadata, GenericReference
 from tests.mock import MockStorage
 
 
@@ -53,3 +55,30 @@ def test_reference_load_model(save_path):
     assert model.is_trained
     assert model.adata.n_obs == 100
     assert model.adata.n_vars == 35
+
+
+def test_reference_save_dataset(save_path):
+    model_store = MockStorage("models", save_path)
+    dataset_store = MockStorage("datasets", save_path)
+    generic_ref = GenericReference(
+        "hca", model_store=model_store, data_store=dataset_store
+    )
+
+    # Create a dummy fille
+    dummydir = os.path.join(save_path, "dummyfiles")
+    os.mkdir(dummydir)
+    dummyfile_path = os.path.join(dummydir, "dummy_file")
+    with open(dummyfile_path, "w") as f:
+        f.write("hello world")
+
+    dsm = DatasetMetadata(42, True)
+    dataset_id = generic_ref.save_dataset(dummyfile_path, None, True, dsm)
+
+    datasets_df = generic_ref.get_datasets_df()
+    assert len(datasets_df) == 2
+    existing_dataset_id = "hca_dataset_dcfaad7a-70a4-4669-87d2-7bb241673097.h5ad"
+    assert datasets_df.columns.to_list() == ["cell_count", "cite"]
+    assert datasets_df["cell_count"].loc[existing_dataset_id] == 100
+    assert datasets_df["cell_count"].loc[dataset_id] == 42
+    assert datasets_df["cite"].loc[existing_dataset_id] == "No"
+    assert datasets_df["cite"].loc[dataset_id] == "Yes"

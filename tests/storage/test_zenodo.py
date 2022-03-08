@@ -1,6 +1,7 @@
 import os
 
 import pytest
+import requests
 
 from scvimadz.storage import ZenodoStorage
 
@@ -40,3 +41,16 @@ def test_download_file(save_path):
     assert exception_raised
     file_path = store.download_file("datasets_metadata.csv")
     assert os.path.isfile(file_path)
+
+
+@pytest.mark.network
+def test_upload_file_invalid_token(save_path):
+    store = ZenodoStorage(_TEST_ZENODO_RECORD, save_path)
+    exception_raised = False
+    try:
+        store.upload_files(files=[], token="foo", ok_to_reversion_datastore=True)
+    except requests.exceptions.HTTPError as e:
+        assert e.response.reason == "UNAUTHORIZED"
+        assert e.response.status_code == 401
+        exception_raised = True
+    assert exception_raised
