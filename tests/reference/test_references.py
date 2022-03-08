@@ -57,6 +57,12 @@ def test_reference_load_model(save_path):
     assert model.adata.n_vars == 35
 
 
+def test_reference_load_model_lean(save_path):
+    # load a model that's saved in a single file rather than a zip
+    # TODO
+    pass
+
+
 def test_reference_save_dataset(save_path):
     model_store = MockStorage("models", save_path)
     dataset_store = MockStorage("datasets", save_path)
