@@ -55,7 +55,7 @@ class MockStorage(BaseStorage):
         for file in files:
             newfile = os.path.join(self._data_dir, file.upload_as)
             if isinstance(file.data, str):
-                shutil.move(file.data, newfile)
+                shutil.copy(file.data, newfile)
             else:
                 with open(newfile, "w") as f:
                     f.write(file.data.getvalue())

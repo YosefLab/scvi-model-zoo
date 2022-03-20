@@ -26,21 +26,30 @@ class _Metadata_File(Enum):
     DATASETS_METADATA_FILE = "datasets_metadata.csv"
 
 
-# TODO move these two into a MetadataManager class that takes an instance of the backend store
-# and encapsulates metada retrieval/update logic. It can then be overridden independently
-# of the rest if needed
 class DatasetMetadata:
-    def __init__(self, cell_count: int, is_cite: bool) -> None:
-        self._cell_count = cell_count
-        self._is_cite = "Yes" if is_cite else "No"
-
-    @property
-    def cell_count(self) -> int:
-        return self._cell_count
+    def __init__(
+        self, is_cite: bool, has_latent_embedding: bool, tissue: str, is_annotated: bool
+    ) -> None:
+        self._is_cite = is_cite
+        self._has_latent_embedding = has_latent_embedding
+        self._tissue = tissue
+        self._is_annotated = is_annotated
 
     @property
     def is_cite(self) -> bool:
         return self._is_cite
+
+    @property
+    def has_latent_embedding(self) -> bool:
+        return self._has_latent_embedding
+
+    @property
+    def tissue(self) -> str:
+        return self._tissue
+
+    @property
+    def is_annotated(self) -> bool:
+        return self._is_annotated
 
 
 class ModelMetadata:
@@ -53,6 +62,7 @@ class ModelMetadata:
         n_latent: int,
         use_observed_lib_size: bool,
         is_cite: bool,
+        init_params: str,
     ) -> None:
         self._cls_name = cls_name
         self._train_dataset = train_dataset
@@ -61,6 +71,7 @@ class ModelMetadata:
         self._n_latent = n_latent
         self._use_observed_lib_size = use_observed_lib_size
         self._is_cite = is_cite
+        self._init_params = init_params
 
     @property
     def cls_name(self) -> str:
@@ -89,6 +100,10 @@ class ModelMetadata:
     @property
     def is_cite(self) -> bool:
         return self._is_cite
+
+    @property
+    def init_params(self) -> str:
+        return self._init_params
 
 
 class BaseReference(ABC):
@@ -269,11 +284,19 @@ class BaseReference(ABC):
         The corresponding dataset id if the dataset was saved successfully.
         """
         dataset_id = f"{self._get_reference_prefix()}dataset_{str(uuid.uuid4())}.h5ad"
+        # Gather dataset metadata
+        adata = anndata.read_h5ad(filepath)
+        cell_count = adata.n_obs
+        gene_count = adata.n_vars
         # Update the metadata csv file
         new = {
             "key": [dataset_id],
-            "cell_count": [metadata.cell_count],
+            "cell_count": [cell_count],
+            "gene_count": [gene_count],
             "cite": [str(metadata.is_cite)],
+            "has_latent_embedding": [str(metadata.has_latent_embedding)],
+            "tissue": [metadata.tissue],
+            "is_annotated": [str(metadata.is_annotated)],
         }
         new_metadata_df = self._augment_objects_df(
             _Obj_Type.DATASET, _Metadata_File.DATASETS_METADATA_FILE, new
@@ -329,6 +352,7 @@ class BaseReference(ABC):
             "n_latent": [str(metadata.n_latent)],
             "use_observed_lib_size": [str(metadata._use_observed_lib_size)],
             "is_cite": [str(metadata.is_cite)],
+            "init_params": [metadata.init_params],
         }
         new_metadata_df = self._augment_objects_df(
             _Obj_Type.MODEL, _Metadata_File.MODELS_METADATA_FILE, new
