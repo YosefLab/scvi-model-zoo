@@ -43,14 +43,52 @@ class DatasetMetadata:
         return self._is_cite
 
 
-# TODO in progress...
 class ModelMetadata:
-    def __init__(self, hyperparameter_alpha: str) -> None:
-        self._hyperparameter_alpha = hyperparameter_alpha
+    def __init__(
+        self,
+        cls_name: str,
+        train_dataset: str,
+        n_hidden: int,
+        n_layers: int,
+        n_latent: int,
+        use_observed_lib_size: bool,
+        is_cite: bool,
+    ) -> None:
+        self._cls_name = cls_name
+        self._train_dataset = train_dataset
+        self._n_hidden = n_hidden
+        self._n_layers = n_layers
+        self._n_latent = n_latent
+        self._use_observed_lib_size = use_observed_lib_size
+        self._is_cite = is_cite
 
     @property
-    def hyperparameter_alpha(self) -> str:
-        return self._hyperparameter_alpha
+    def cls_name(self) -> str:
+        return self._cls_name
+
+    @property
+    def train_dataset(self) -> str:
+        return self._train_dataset
+
+    @property
+    def n_hidden(self) -> int:
+        return self._n_hidden
+
+    @property
+    def n_layers(self) -> int:
+        return self._n_layers
+
+    @property
+    def n_latent(self) -> int:
+        return self._n_latent
+
+    @property
+    def use_observed_lib_size(self) -> bool:
+        return self._use_observed_lib_size
+
+    @property
+    def is_cite(self) -> bool:
+        return self._is_cite
 
 
 class BaseReference(ABC):
@@ -125,15 +163,15 @@ class BaseReference(ABC):
             _Obj_Type.DATASET, _Metadata_File.DATASETS_METADATA_FILE, pretty_print
         )
 
-    def _augment_datasets_df(self, new: dict) -> pd.DataFrame:
-        """Add the given record to the datasets_metadata dataframe and return the updated dataframe."""
+    def _augment_objects_df(
+        self, obj_type: _Obj_Type, metadata_fn: _Metadata_File, new: dict
+    ) -> pd.DataFrame:
+        """Add the given record to the datasets or models dataframe and return the updated dataframe."""
         if not new["key"][0].startswith(self._get_reference_prefix()):
             raise ValueError(
                 f"Can only add new records for reference '{self.reference_name}'"
             )
-        metadata_df = self._list_objects(
-            _Obj_Type.DATASET, _Metadata_File.DATASETS_METADATA_FILE, all_keys=True
-        )
+        metadata_df = self._list_objects(obj_type, metadata_fn, all_keys=True)
         new_df = pd.DataFrame(new)
         metadata_df = metadata_df.reset_index().append(new_df).set_index("key")
         return metadata_df
@@ -179,6 +217,8 @@ class BaseReference(ABC):
             shutil.unpack_archive(model_path, f"{os.path.dirname(model_path)}")
             model_path = model_path[:-4]  # strip the .zip
         else:
+            new_file = os.path.join(os.path.dirname(model_path), "model.pt")
+            shutil.move(model_path, new_file)
             model_path = os.path.dirname(model_path)
         return model_cls.load(model_path, adata=adata, use_gpu=use_gpu)
 
@@ -235,7 +275,9 @@ class BaseReference(ABC):
             "cell_count": [metadata.cell_count],
             "cite": [str(metadata.is_cite)],
         }
-        new_metadata_df = self._augment_datasets_df(new)
+        new_metadata_df = self._augment_objects_df(
+            _Obj_Type.DATASET, _Metadata_File.DATASETS_METADATA_FILE, new
+        )
         new_metadata = io.StringIO(new_metadata_df.to_csv())
         # Upload both files in a single transaction
         files = [
@@ -245,3 +287,58 @@ class BaseReference(ABC):
         self.data_store.upload_files(files, token, ok_to_reversion_datastore)
         print(f"Uploaded dataset successfully. Dataset_id is: {dataset_id}.")
         return dataset_id
+
+    def save_model(
+        self,
+        filepath: str,
+        token: Optional[str],
+        ok_to_reversion_datastore: Optional[bool],
+        metadata: ModelMetadata,
+    ) -> str:
+        """
+        Saves the model at the given path and returns its corresponding model id.
+
+        Parameters
+        ----------
+        filepath
+            The path to the model to save
+        token
+            Some storage backends (such as Zenodo) require a token. This arg is
+            required to remind users to provide an upload token if their backend
+            requires one. Provide `None` if not applicable.
+        ok_to_reversion_datastore
+            Some storage backends (such as Zenodo) require creating a new version
+            of the storage to create new files. This arg is required to ask users
+            to provide their consent to this consequence. Provide `None` if this is
+            not applicable to your storage backend.
+        metadata
+            Required metadata for this model
+
+        Returns
+        -------
+        The corresponding model id if the model was saved successfully.
+        """
+        model_id = f"{self._get_reference_prefix()}model_{str(uuid.uuid4())}.pt"
+        # Update the metadata csv file
+        new = {
+            "key": [model_id],
+            "cls_name": [metadata.cls_name],
+            "train_dataset": [metadata.train_dataset],
+            "n_hidden": [str(metadata.n_hidden)],
+            "n_layers": [str(metadata.n_layers)],
+            "n_latent": [str(metadata.n_latent)],
+            "use_observed_lib_size": [str(metadata._use_observed_lib_size)],
+            "is_cite": [str(metadata.is_cite)],
+        }
+        new_metadata_df = self._augment_objects_df(
+            _Obj_Type.MODEL, _Metadata_File.MODELS_METADATA_FILE, new
+        )
+        new_metadata = io.StringIO(new_metadata_df.to_csv())
+        # Upload both files in a single transaction
+        files = [
+            FileToUpload(filepath, model_id),
+            FileToUpload(new_metadata, _Metadata_File.MODELS_METADATA_FILE.value),
+        ]
+        self.model_store.upload_files(files, token, ok_to_reversion_datastore)
+        print(f"Uploaded model successfully. Model_id is: {model_id}.")
+        return model_id
