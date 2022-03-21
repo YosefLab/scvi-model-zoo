@@ -43,7 +43,14 @@ def test_reference(save_path):
     assert (
         datasets_df.index[0] == "hca_dataset_dcfaad7a-70a4-4669-87d2-7bb241673097.h5ad"
     )
-    assert datasets_df.columns.to_list() == ["cell_count", "cite"]
+    assert datasets_df.columns.to_list() == [
+        "cell_count",
+        "gene_count",
+        "cite",
+        "has_latent_embedding",
+        "tissue",
+        "is_annotated",
+    ]
     assert datasets_df["cell_count"].iloc[0] == 100
 
 
@@ -96,13 +103,13 @@ def test_reference_save_dataset(save_path):
     assert datasets_df["cell_count"].loc[existing_dataset_id] == 100
     assert datasets_df["cell_count"].loc[dataset_id] == 42
 
-    assert datasets_df["cite"].loc[existing_dataset_id] is False
-    assert datasets_df["cite"].loc[dataset_id] is True
+    assert bool(datasets_df["cite"].loc[existing_dataset_id]) is False
+    assert bool(datasets_df["cite"].loc[dataset_id]) is True
 
     assert datasets_df["gene_count"].loc[dataset_id] == 42.0
-    assert datasets_df["has_latent_embedding"].loc[dataset_id] is True
+    assert bool(datasets_df["has_latent_embedding"].loc[dataset_id]) is True
     assert datasets_df["tissue"].loc[dataset_id] == "Misc"
-    assert datasets_df["is_annotated"].loc[dataset_id] is False
+    assert bool(datasets_df["is_annotated"].loc[dataset_id]) is False
 
 
 def test_reference_save_model(save_path):
@@ -175,6 +182,6 @@ def test_reference_save_model(save_path):
     assert models_df["n_hidden"].loc[model_id] == 128.0
     assert models_df["n_layers"].loc[model_id] == 1.0
     assert models_df["n_latent"].loc[model_id] == 10.0
-    assert models_df["use_observed_lib_size"].loc[model_id] is False
-    assert models_df["is_cite"].loc[model_id] is True
+    assert bool(models_df["use_observed_lib_size"].loc[model_id]) is False
+    assert bool(models_df["is_cite"].loc[model_id]) is True
     assert models_df["init_params"].loc[model_id] == json.dumps(init_params_dict)
