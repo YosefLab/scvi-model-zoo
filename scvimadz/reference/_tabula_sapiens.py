@@ -21,13 +21,6 @@ class TabulaSapiensReference(BaseReference):
         self._data_store = ZenodoStorage("6513306", data_dir)
 
     @property
-    def reference_name(self) -> str:
-        # TODO deprecate reference name as we are going to have per-reference
-        # Zenodo repositories (two per reference, one for models and one for datasets
-        # of that reference)
-        return ""
-
-    @property
     def model_store(self) -> Type[BaseStorage]:
         return self._model_store
 

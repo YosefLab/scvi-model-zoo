@@ -26,10 +26,6 @@ class GenericReference(BaseReference):
         self._data_store = data_store
 
     @property
-    def reference_name(self) -> str:
-        return ""
-
-    @property
     def model_store(self) -> Type[BaseStorage]:
         return self._model_store
 

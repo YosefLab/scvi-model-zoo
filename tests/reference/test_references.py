@@ -11,13 +11,9 @@ from tests.mock import MockStorage
 def test_reference(save_path):
     model_store = MockStorage("models", save_path)
     dataset_store = MockStorage("datasets", save_path)
-    generic_ref = GenericReference(
-        "hca", model_store=model_store, data_store=dataset_store
-    )
-    assert generic_ref.reference_name == "hca"
+    generic_ref = GenericReference(model_store=model_store, data_store=dataset_store)
     assert generic_ref.model_store is model_store
     assert generic_ref.data_store is dataset_store
-    assert generic_ref._get_reference_prefix() == "hca_"
 
     exception_raised = False
     try:
@@ -46,9 +42,9 @@ def test_reference(save_path):
     assert datasets_df.columns.to_list() == [
         "cell_count",
         "gene_count",
-        "cite",
-        "has_latent_embedding",
         "tissue",
+        "has_cite",
+        "has_latent_embedding",
         "is_annotated",
     ]
     assert datasets_df["cell_count"].iloc[0] == 100
