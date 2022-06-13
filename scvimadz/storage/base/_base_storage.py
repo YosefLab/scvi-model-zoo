@@ -35,15 +35,6 @@ class BaseStorage(ABC):
     For example we can have a Zenodo storage backend (remote) or a file system directory backend (local).
     The storage recognizes objects via their keys, which are unique object identifiers. Typically these are
     file names (incl. file extension).
-
-    Parameters
-    ----------
-    reference_name
-        Name of the reference
-    model_store
-        BaseStorage for the model store
-    data_store
-        BaseStorage for the data store
     """
 
     @abstractmethod
@@ -54,7 +45,7 @@ class BaseStorage(ABC):
     @abstractmethod
     def download_file(self, key: str) -> str:
         """
-        Downloads the file with the given key if it exists to a temp location, else raises an error.
+        Downloads the file with the given id to the path rooted at the user-provided `data_dir`, else raises an error.
 
         Parameters
         ----------
@@ -84,8 +75,8 @@ class BaseStorage(ABC):
         files
             List of files to upload.
         token
-            Access token to use for the upload. Write and Action scopes are required.
+            Access token to use for the upload. If not applicable to this backend, pass None.
         ok_to_reversion_datastore
-            Whether it is ok to bump the store version.
+            Whether it is ok to bump the store version. If not applicable to this backend, pass None.
         """
         pass

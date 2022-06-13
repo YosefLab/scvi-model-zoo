@@ -16,9 +16,6 @@ def test_zenodo_storage_init(save_path):
     assert store._zenodo_api_base_url == "https://zenodo.org/api/"
     assert store._zenodo_api_records_url == "https://zenodo.org/api/records/"
 
-    store = ZenodoStorage(_TEST_ZENODO_RECORD, save_path)
-    assert store._zenodo_api_base_url == "https://zenodo.org/api/"
-
 
 @pytest.mark.network
 def test_list_keys(save_path):

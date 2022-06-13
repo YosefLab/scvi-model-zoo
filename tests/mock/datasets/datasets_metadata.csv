@@ -1,3 +1,2 @@
-key,cell_count,gene_count,cite,has_latent_embedding,tissue,is_annotated
-tabula_sapiens_dataset_b4c16899-e458-4cf5-947e-bed59031f156.h5ad,50,,True,,,
-hca_dataset_dcfaad7a-70a4-4669-87d2-7bb241673097.h5ad,100,,False,,,
+key,cell_count,gene_count,tissue,has_cite,has_latent_embedding,is_annotated
+dcfaad7a-70a4-4669-87d2-7bb241673097.h5ad,100,35,Bone Marrow,False,True,True

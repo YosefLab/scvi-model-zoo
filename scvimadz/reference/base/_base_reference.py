@@ -28,12 +28,24 @@ class _Metadata_File(Enum):
 
 class DatasetMetadata:
     def __init__(
-        self, is_cite: bool, has_latent_embedding: bool, tissue: str, is_annotated: bool
+        self, tissue: str, is_cite: bool, has_latent_embedding: bool, is_annotated: bool
     ) -> None:
+        self._tissue = tissue
+        if (
+            not isinstance(is_cite, bool)
+            or not isinstance(has_latent_embedding, bool)
+            or not isinstance(is_annotated, bool)
+        ):
+            raise ValueError(
+                "is_cite, has_latent_embedding, is_annotated must be booleans"
+            )
         self._is_cite = is_cite
         self._has_latent_embedding = has_latent_embedding
-        self._tissue = tissue
         self._is_annotated = is_annotated
+
+    @property
+    def tissue(self) -> str:
+        return self._tissue
 
     @property
     def is_cite(self) -> bool:
@@ -42,10 +54,6 @@ class DatasetMetadata:
     @property
     def has_latent_embedding(self) -> bool:
         return self._has_latent_embedding
-
-    @property
-    def tissue(self) -> str:
-        return self._tissue
 
     @property
     def is_annotated(self) -> bool:
@@ -61,7 +69,6 @@ class ModelMetadata:
         n_layers: int,
         n_latent: int,
         use_observed_lib_size: bool,
-        is_cite: bool,
         init_params: str,
     ) -> None:
         self._cls_name = cls_name
@@ -70,7 +77,6 @@ class ModelMetadata:
         self._n_layers = n_layers
         self._n_latent = n_latent
         self._use_observed_lib_size = use_observed_lib_size
-        self._is_cite = is_cite
         self._init_params = init_params
 
     @property
@@ -98,21 +104,11 @@ class ModelMetadata:
         return self._use_observed_lib_size
 
     @property
-    def is_cite(self) -> bool:
-        return self._is_cite
-
-    @property
     def init_params(self) -> str:
         return self._init_params
 
 
 class BaseReference(ABC):
-    @property
-    @abstractmethod
-    def reference_name(self) -> str:
-        """The name of this reference."""
-        pass
-
     @property
     @abstractmethod
     def model_store(self) -> Type[BaseStorage]:
@@ -124,9 +120,6 @@ class BaseReference(ABC):
     def data_store(self) -> Type[BaseStorage]:
         """The backend store for datasets."""
         pass
-
-    def _get_reference_prefix(self) -> str:
-        return f"{self.reference_name}_"  # e.g. tabula_sapiens_
 
     def _get_store_for_object(self, obj_type: _Obj_Type) -> Type[BaseStorage]:
         if not isinstance(obj_type, _Obj_Type):
@@ -140,7 +133,7 @@ class BaseReference(ABC):
         keys = [
             key
             for key in store.list_keys()
-            if all_keys or key.startswith(self._get_reference_prefix())
+            if all_keys or not key.endswith("_metadata.csv")
         ]
         return keys
 
@@ -182,10 +175,6 @@ class BaseReference(ABC):
         self, obj_type: _Obj_Type, metadata_fn: _Metadata_File, new: dict
     ) -> pd.DataFrame:
         """Add the given record to the datasets or models dataframe and return the updated dataframe."""
-        if not new["key"][0].startswith(self._get_reference_prefix()):
-            raise ValueError(
-                f"Can only add new records for reference '{self.reference_name}'"
-            )
         metadata_df = self._list_objects(obj_type, metadata_fn, all_keys=True)
         new_df = pd.DataFrame(new)
         metadata_df = metadata_df.reset_index().append(new_df).set_index("key")
@@ -216,8 +205,8 @@ class BaseReference(ABC):
         An instance of :class:`~scvi.model.base.BaseModelClass` associated with the given model id.
         """
         models = self.get_models_df()
-        # get the cell that contains the cls_name for this model, it will be like: scvi.model.TOTALVI
-        model_cls_name = models.loc[model_id, "cls_name"]
+        # get the cell that contains the class name for this model, it will be like: scvi.model.TOTALVI
+        model_cls_name = models.loc[model_id, "class_name"]
         cls = model_cls_name.split(".")[-1]
         module = ".".join(model_cls_name.split(".")[:-1])
         # We must have an anndata object to load the model with. If no adata is provided, then use
@@ -283,7 +272,7 @@ class BaseReference(ABC):
         -------
         The corresponding dataset id if the dataset was saved successfully.
         """
-        dataset_id = f"{self._get_reference_prefix()}dataset_{str(uuid.uuid4())}.h5ad"
+        dataset_id = f"{str(uuid.uuid4())}.h5ad"
         # Gather dataset metadata
         adata = anndata.read_h5ad(filepath)
         cell_count = adata.n_obs
@@ -293,9 +282,9 @@ class BaseReference(ABC):
             "key": [dataset_id],
             "cell_count": [cell_count],
             "gene_count": [gene_count],
-            "cite": [str(metadata.is_cite)],
-            "has_latent_embedding": [str(metadata.has_latent_embedding)],
             "tissue": [metadata.tissue],
+            "has_cite": [str(metadata.is_cite)],
+            "has_latent_embedding": [str(metadata.has_latent_embedding)],
             "is_annotated": [str(metadata.is_annotated)],
         }
         new_metadata_df = self._augment_objects_df(
@@ -341,17 +330,16 @@ class BaseReference(ABC):
         -------
         The corresponding model id if the model was saved successfully.
         """
-        model_id = f"{self._get_reference_prefix()}model_{str(uuid.uuid4())}.pt"
+        model_id = f"{str(uuid.uuid4())}.pt"
         # Update the metadata csv file
         new = {
             "key": [model_id],
-            "cls_name": [metadata.cls_name],
+            "class_name": [metadata.cls_name],
             "train_dataset": [metadata.train_dataset],
             "n_hidden": [str(metadata.n_hidden)],
             "n_layers": [str(metadata.n_layers)],
             "n_latent": [str(metadata.n_latent)],
             "use_observed_lib_size": [str(metadata._use_observed_lib_size)],
-            "is_cite": [str(metadata.is_cite)],
             "init_params": [metadata.init_params],
         }
         new_metadata_df = self._augment_objects_df(
